@@ -12,6 +12,19 @@ import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/cata
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('generates independent random problem instances when randomUUID is unavailable',()=>{
+    const cryptoOriginal=globalThis.crypto
+    const getRandomValues=vi.fn(bytes=>cryptoOriginal.getRandomValues(bytes))
+    vi.stubGlobal('crypto',{getRandomValues})
+    try {
+      const first=createProblemTools(),second=createProblemTools()
+      const instances=[first,second,first,second].map(p=>p.createInternalProblem('unexpectedError').instance)
+      expect(new Set(instances).size).toBe(4)
+      expect(instances.every(instance=>/^urn:sarafan:ui:[0-9a-f]{32}$/u.test(instance))).toBe(true)
+      expect(getRandomValues).toHaveBeenCalledTimes(4)
+      expect(new Set(getRandomValues.mock.calls.map(([bytes])=>bytes)).size).toBe(4)
+    } finally {vi.unstubAllGlobals()}
+  })
   it('preserves transport problems when diagnostics throw and records malformed response status separately',async()=>{
     const p=createProblemTools(),fail=()=>{throw new Error('private diagnostic failure')}
     const fetch=vi.fn().mockResolvedValue(problemResponse(400,'validation-failed'))

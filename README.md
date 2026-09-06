@@ -17,6 +17,8 @@ This file is a part of the Sarafan application -->
 
 Applications own event definitions, route-template allowlists, resource/version/runtime configuration, authentication/session stores, roles, routes and components. Never pass raw URLs, credentials, user data, free-form error messages or unknown attributes into logging. Existing customer problem and event identifiers remain stable.
 
+The browser runtime must provide Web Crypto `getRandomValues`. Problem occurrences use `randomUUID` when available and fresh random identifiers otherwise; separate consumers never share an instance counter.
+
 ## Development and distribution
 
 Use Node 22.23+ or Node 24.15+, then `npm ci`, `npm run lint`, `npm run coverage`, and `npm run build`. Coverage requires 95% statements, branches, functions and lines.

@@ -3,6 +3,7 @@
 // This file is a part of the Sarafan application
 
 import { problemAttributes, problemContext } from './observability/problem-reporting.js'
+import { createTraceId } from './observability/trace-context.js'
 
 export const PROBLEM_TYPE_ROOT = 'https://sarafan.sw.consulting/problems/'
 
@@ -39,11 +40,8 @@ export const COMMON_INTERNAL_CATALOGUE = Object.freeze({
   }
 })
 
-let fallbackInstanceSequence = 0
-
 function uniqueInstance() {
-  const identifier = globalThis.crypto?.randomUUID?.()
-    ?? `${Date.now().toString(36)}-${fallbackInstanceSequence += 1}`
+  const identifier = globalThis.crypto?.randomUUID?.() ?? createTraceId()
   return `urn:sarafan:ui:${identifier}`
 }
 
