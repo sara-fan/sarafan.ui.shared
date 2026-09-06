@@ -19,7 +19,7 @@ Applications own event definitions, route-template allowlists, resource/version/
 
 ## Development and distribution
 
-Use Node 22.12+ or Node 24, then `npm ci`, `npm run lint`, `npm run coverage`, and `npm run build`. Coverage requires 95% statements, branches, functions and lines.
+Use Node 22.23+ or Node 24.15+, then `npm ci`, `npm run lint`, `npm run coverage`, and `npm run build`. Coverage requires 95% statements, branches, functions and lines.
 
 `npm pack` produces `sara-fan-ui-shared-0.0.1.tgz`. Install this exact candidate in both consumer applications to run their contract, component and production-build checks. Temporary local dependencies must not be committed.
 
