@@ -4,7 +4,7 @@ This file is a part of the Sarafan application -->
 
 # Sarafan shared browser infrastructure
 [![ci](https://github.com/sara-fan/sarafan.ui.shared/actions/workflows/ci.yml/badge.svg)](https://github.com/sara-fan/sarafan.ui.shared/actions/workflows/ci.yml)
-
+[![codecov](https://codecov.io/gh/sara-fan/sarafan.ui.shared/graph/badge.svg?token=ajABDfs8Sf)](https://codecov.io/gh/sara-fan/sarafan.ui.shared)
 
 `@sara-fan/ui-shared` version **0.0.1** provides plain ESM browser infrastructure for Sarafan UI and Back Office. It has no Vue dependency or application-level state. See [the implementation issue](https://github.com/sara-fan/sarafan.back.office/issues/1).
 
