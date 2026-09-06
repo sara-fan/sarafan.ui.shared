@@ -66,6 +66,7 @@ For other comment-capable formats, use the same three lines with that format's n
 - Export only documented module entry points; internal source paths are not public API.
 - Preserve valid RFC 9457 instance URI references in structured errors. Diagnostics independently allowlist correlation URNs and must omit arbitrary URLs/paths. An absent refresh hook disables retry and preserves the original authentication problem.
 - Isolate injected diagnostic failures from HTTP results and still mark failures handled. Capture response status separately for protocol-error logging without assigning HTTP semantics to internal problem objects or reusing status from a previous retry attempt.
+- Global error boundaries must tolerate absent or failing diagnostic hooks and attempt handled marking even when reporting fails. Their disposer removes browser listeners and restores the previous Vue handler when the boundary still owns it.
 - Release npm-pack artifacts and checksums under immutable semantic-version GitHub releases. Never replace published assets. Both consumers pin exact URLs and integrity. Test the actual packed artifact and both consuming applications before final release.
 - Maintain at least 95% statements, branches, functions and lines coverage. Test rejection paths, isolation, parser failure, retry exhaustion, redaction and sink failure.
 

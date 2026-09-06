@@ -3,6 +3,7 @@
 // This file is a part of the Sarafan application
 import { describe, expect, it, vi } from 'vitest'
 import { createDeduplication } from '../src/observability/deduplication.js'
+import { createErrorBoundaries } from '../src/observability/boundaries.js'
 import { createLogger } from '../src/observability/logger.js'
 import { createProblemTools } from '../src/problems.js'
 import { createHttpTools } from '../src/http.js'
@@ -12,6 +13,36 @@ import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/cata
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('keeps global boundaries safe when diagnostic hooks are missing or fail',()=>{
+    const p=createProblemTools(),raw=new Error('private'),problem=p.normalizeProblem(raw)
+    const fail=()=>{throw new Error('private diagnostic failure')}
+    for(const override of [{logger:undefined},{logger:{}},{logger:{log:fail}},{isHandled:undefined},{isHandled:fail},{markHandled:undefined},{markHandled:fail},{normalizeProblem:fail}]) {
+      const markHandled=vi.fn(),logger={log:vi.fn(()=>true)}
+      const boundary=createErrorBoundaries({normalizeProblem:()=>problem,events:EVENTS,isHandled:()=>false,markHandled,logger,...override})
+      expect(()=>boundary.reportBoundaryFailure(raw,EVENTS.applicationError)).not.toThrow()
+      if(!Object.hasOwn(override,'markHandled')) {
+        expect(markHandled).toHaveBeenCalledWith(raw)
+        if(!override.normalizeProblem) expect(markHandled).toHaveBeenCalledWith(problem)
+      }
+    }
+    const minimal=createErrorBoundaries({...p})
+    const app={config:{}},target=new globalThis.EventTarget()
+    const dispose=minimal.installErrorBoundaries(app,target)
+    expect(app.config.errorHandler(raw)).toBe(false)
+    target.dispatchEvent(new globalThis.ErrorEvent('error',{error:raw}))
+    target.dispatchEvent(Object.assign(new globalThis.Event('unhandledrejection'),{reason:raw}))
+    dispose()
+  })
+  it('restores the previous Vue handler on disposal without replacing a later owner',()=>{
+    const p=createProblemTools(),boundary=createErrorBoundaries({...p,...createDeduplication(),events:EVENTS})
+    const previous=vi.fn(),later=vi.fn(),app={config:{errorHandler:previous}},target=new globalThis.EventTarget()
+    const dispose=boundary.installErrorBoundaries(app,target)
+    expect(app.config.errorHandler).not.toBe(previous)
+    dispose();expect(app.config.errorHandler).toBe(previous)
+    const disposeAgain=boundary.installErrorBoundaries(app,target)
+    app.config.errorHandler=later
+    disposeAgain();expect(app.config.errorHandler).toBe(later)
+  })
   it('generates independent random problem instances when randomUUID is unavailable',()=>{
     const cryptoOriginal=globalThis.crypto
     const getRandomValues=vi.fn(bytes=>cryptoOriginal.getRandomValues(bytes))
