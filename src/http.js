@@ -142,6 +142,7 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
         if (!response.ok) {
           const problem = await parseProblemResponse(response)
           if (problem.type === invalidAccessTokenType && authorize && retryCount === 0 && retry && typeof refreshSession === 'function') {
+            responseStatus = undefined
             await refreshSession(trace)
             return attempt(1)
           }

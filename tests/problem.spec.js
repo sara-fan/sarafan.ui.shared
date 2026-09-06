@@ -31,10 +31,12 @@ describe('shared problem model', () => {
 
   it('generates unique instances and keeps causes diagnostic-only', () => {
     const cause = new Error('secret native message')
-    const first = createInternalProblem('unexpectedError', { cause })
-    const second = createInternalProblem('unexpectedError')
+    const first = createInternalProblem('unexpectedError', { cause, instance: 'caller-controlled' })
+    const second = createInternalProblem('unexpectedError', { instance: 'caller-controlled' })
 
     expect(first.instance).not.toBe(second.instance)
+    expect(first.instance).not.toBe('caller-controlled')
+    expect(second.instance).not.toBe('caller-controlled')
     expect(first.cause).toBe(cause)
     expect(Object.keys(first)).not.toContain('cause')
     expect(JSON.stringify(first)).not.toContain('secret native message')

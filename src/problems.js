@@ -103,7 +103,7 @@ export function createProblemTools({ additions = {}, logger: defaultLogger, supp
       type: INTERNAL_PROBLEM_TYPES[kind],
       title: definition.title,
       detail: options.detail || definition.detail,
-      instance: options.instance || uniqueInstance(),
+      instance: uniqueInstance(),
       code: definition.code,
       errors: options.errors
     }, { cause: options.cause })

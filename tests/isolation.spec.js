@@ -13,6 +13,19 @@ import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/cata
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('does not attribute the original unauthorized status to a failed refresh hook',async()=>{
+    const p=createProblemTools(),logger={log:vi.fn()}
+    const http=createHttpTools({...p,...createDeduplication(),logger,failedEvent:EVENTS.apiRequestFailed,routeTemplate:()=>'/api/v1/test',shouldReportFailure:()=>true,invalidAccessTokenType:'https://sarafan.sw.consulting/problems/invalid-access-token'})
+    const remoteFailure=await http.parseProblemResponse(problemResponse(503,'service-unavailable'))
+    vi.stubGlobal('fetch',vi.fn().mockResolvedValue(problemResponse(401,'invalid-access-token')))
+    try {
+      for(const failure of [new Error('private hook failure'),p.createInternalProblem('networkUnavailable'),remoteFailure]) {
+        const client=http.createApiClient({refreshSession:async()=>{throw failure}})
+        await expect(client.request('/api/v1/test',{}, {authorize:true})).rejects.toHaveProperty('code')
+        expect(logger.log.mock.calls.at(-1)[1]['http.response.status_code']).toBe(failure.status)
+      }
+    } finally {vi.unstubAllGlobals()}
+  })
   it('keeps global boundaries safe when diagnostic hooks are missing or fail',()=>{
     const p=createProblemTools(),raw=new Error('private'),problem=p.normalizeProblem(raw)
     const fail=()=>{throw new Error('private diagnostic failure')}
