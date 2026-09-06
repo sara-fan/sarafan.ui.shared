@@ -28,6 +28,9 @@ describe('independent consuming applications',()=>{
       logger.flushDropped()
     }
     expect(sink.emit).toHaveBeenCalledTimes(1)
+    const incomplete=createLogger({...base,events:undefined,rateLimit:{maximum:1,windowMilliseconds:1000}})
+    incomplete.log(EVENTS.applicationError);incomplete.log(EVENTS.applicationError)
+    expect(()=>incomplete.flushDropped()).not.toThrow()
   })
   it('isolates handled failures, problem additions, logger identity and rate limits',()=>{
     const a=createDeduplication(),b=createDeduplication(),error=new Error('diagnostic')

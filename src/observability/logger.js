@@ -69,7 +69,7 @@ export function createLogger({
   }
 
   function emitDropped(eventName, count) {
-    if (count > 0) {
+    if (count > 0 && EVENTS?.eventsDropped) {
       emit(EVENTS.eventsDropped, {
         'event.name': eventName,
         'event.dropped_count': count
