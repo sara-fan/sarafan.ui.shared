@@ -122,7 +122,7 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
         headers.set('Accept', responseType === 'blob' ? binaryAccept : JSON_ACCEPT)
         headers.set('traceparent', attemptTrace.traceparent)
 
-        const token = getAccessToken()
+        const token = authorize && typeof getAccessToken === 'function' ? getAccessToken() : ''
         if (authorize && token) headers.set('Authorization', `Bearer ${token}`)
 
         let response

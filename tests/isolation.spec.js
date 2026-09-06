@@ -26,6 +26,12 @@ describe('independent consuming applications',()=>{
         await expect(client.request('/staff',{}, {authorize:true})).rejects.toMatchObject({code:'invalid_access_token'})
       }
       expect(fetch).toHaveBeenCalledTimes(2)
+      const getAccessToken=vi.fn(()=>{throw new Error('Token store must not run')})
+      fetch.mockResolvedValue(response(200,{}))
+      await http.createApiClient({getAccessToken}).request('/public')
+      expect(getAccessToken).not.toHaveBeenCalled()
+      await http.createApiClient({}).request('/private',{}, {authorize:true})
+      expect(fetch.mock.calls.at(-1)[1].headers.has('Authorization')).toBe(false)
     } finally {vi.unstubAllGlobals()}
   })
   it('keeps suppression safe with absent or failing diagnostic hooks',()=>{
