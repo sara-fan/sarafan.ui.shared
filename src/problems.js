@@ -136,10 +136,17 @@ export function createProblemTools({ additions = {}, logger: defaultLogger, supp
   function suppressProblem(value, options = {}) {
     const problem = normalizeProblem(value, options)
     const logger = options.logger ?? defaultLogger
-    logger.log(suppressedEvent, {
-      ...problemAttributes(problem),
-      'operation.name': options.operation ?? 'unknown'
-    }, problemContext(problem))
+    try {
+      if (typeof logger?.log === 'function' && suppressedEvent) {
+        logger.log(suppressedEvent, {
+          ...problemAttributes(problem),
+          'operation.name': options.operation ?? 'unknown'
+        }, problemContext(problem))
+      }
+    } catch {
+      // Suppression must remain safe even when an injected diagnostic hook fails.
+      return problem
+    }
     return problem
   }
 

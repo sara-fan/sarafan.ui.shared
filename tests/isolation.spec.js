@@ -10,6 +10,25 @@ import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/cata
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('keeps suppression safe with absent or failing diagnostic hooks',()=>{
+    for(const options of [{}, {logger:{}}, {logger:{log:vi.fn()}}, {suppressedEvent:EVENTS.operationSuppressed}, {logger:{log:()=>{throw new Error('private')}},suppressedEvent:EVENTS.operationSuppressed}]) {
+      const p=createProblemTools(options)
+      const problem=p.createInternalProblem('networkUnavailable')
+      expect(p.suppressProblem(problem)).toBe(problem)
+    }
+  })
+  it('fails closed for missing identity and invalid logging switches',()=>{
+    expect(createLogger().log(EVENTS.applicationError)).toBe(false)
+    const sink={emit:vi.fn()}
+    const base={serviceName:'sarafan.ui',version:'0.0.1',events:EVENTS,severity:SEVERITY,isCatalogueEvent,enabled:true,sink}
+    for(const override of [{serviceName:undefined},{serviceName:''},{version:undefined},{version:' '},{enabled:'true'},{severity:undefined}]) {
+      const logger=createLogger({...base,...override})
+      if(override.severity===undefined && Object.hasOwn(override,'severity')) expect(logger.log(EVENTS.applicationError)).toBe(true)
+      else expect(logger.log(EVENTS.applicationError)).toBe(false)
+      logger.flushDropped()
+    }
+    expect(sink.emit).toHaveBeenCalledTimes(1)
+  })
   it('isolates handled failures, problem additions, logger identity and rate limits',()=>{
     const a=createDeduplication(),b=createDeduplication(),error=new Error('diagnostic')
     a.markHandled(error);expect(a.isHandled(error)).toBe(true);expect(b.isHandled(error)).toBe(false)

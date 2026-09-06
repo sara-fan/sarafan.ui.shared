@@ -49,13 +49,15 @@ export function createLogger({
   environment = 'unknown',
   rateLimit = DEFAULT_RATE_LIMIT
 } = {}) {
-  const minimumNumber = SEVERITY[minimumSeverity]?.number ?? SEVERITY.WARN.number
+  const minimumNumber = SEVERITY?.[minimumSeverity]?.number ?? SEVERITY?.WARN?.number ?? 13
+  const configured = enabled === true && typeof serviceName === 'string' && Boolean(serviceName.trim())
+    && typeof version === 'string' && Boolean(version.trim())
   const effectiveRateLimit = normalizeRateLimit(rateLimit)
   const limits = new Map()
 
   function emit(definition, attributes = {}, context = {}) {
     try {
-      if (!enabled || !isCatalogueEvent(definition) || definition.severity.number < minimumNumber) {
+      if (!configured || !isCatalogueEvent(definition) || definition.severity.number < minimumNumber) {
         return false
       }
       const sanitized = sanitizeAttributes(definition, attributes)
@@ -77,7 +79,7 @@ export function createLogger({
 
   function log(definition, attributes = {}, context = {}) {
     try {
-      if (!enabled || !isCatalogueEvent(definition) || definition.severity.number < minimumNumber) {
+      if (!configured || !isCatalogueEvent(definition) || definition.severity.number < minimumNumber) {
         return false
       }
       if (!definition.rateLimited) return emit(definition, attributes, context)
@@ -109,4 +111,3 @@ export function createLogger({
 
   return Object.freeze({ log, flushDropped })
 }
-
