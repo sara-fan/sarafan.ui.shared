@@ -6,10 +6,28 @@ import { createDeduplication } from '../src/observability/deduplication.js'
 import { createLogger } from '../src/observability/logger.js'
 import { createProblemTools } from '../src/problems.js'
 import { createHttpTools } from '../src/http.js'
+import { sanitizeAttributes } from '../src/observability/sanitize.js'
+import { problemAttributes } from '../src/observability/problem-reporting.js'
 import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/catalogue.js'
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('preserves RFC URI references without logging them and treats an omitted refresh hook as final failure',async()=>{
+    const p=createProblemTools(),logger={log:vi.fn()}
+    const http=createHttpTools({...p,...createDeduplication(),logger,failedEvent:EVENTS.apiRequestFailed,routeTemplate:()=>undefined,shouldReportFailure:()=>true,invalidAccessTokenType:'https://sarafan.sw.consulting/problems/invalid-access-token'})
+    const parsed=await http.parseProblemResponse(problemResponse(400,'validation-failed',{instance:'/requests/private@example.test',traceId:undefined}))
+    expect(parsed.instance).toBe('/requests/private@example.test')
+    expect(sanitizeAttributes(EVENTS.apiRequestFailed,problemAttributes(parsed))).not.toHaveProperty('sarafan.problem.instance')
+    const fetch=vi.fn().mockResolvedValue(problemResponse(401,'invalid-access-token'))
+    vi.stubGlobal('fetch',fetch)
+    try {
+      for(const refreshSession of [undefined,'invalid']) {
+        const client=http.createApiClient({getAccessToken:()=>'',refreshSession})
+        await expect(client.request('/staff',{}, {authorize:true})).rejects.toMatchObject({code:'invalid_access_token'})
+      }
+      expect(fetch).toHaveBeenCalledTimes(2)
+    } finally {vi.unstubAllGlobals()}
+  })
   it('keeps suppression safe with absent or failing diagnostic hooks',()=>{
     for(const options of [{}, {logger:{}}, {logger:{log:vi.fn()}}, {suppressedEvent:EVENTS.operationSuppressed}, {logger:{log:()=>{throw new Error('private')}},suppressedEvent:EVENTS.operationSuppressed}]) {
       const p=createProblemTools(options)

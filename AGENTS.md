@@ -64,5 +64,6 @@ For other comment-capable formats, use the same three lines with that format's n
 - Preserve public problem identifiers, privacy rules, log event contracts and single-retry semantics when extracting or changing code. Give each constructed runtime its own mutable diagnostics state.
 - Logger construction and suppression must tolerate missing diagnostic configuration. Logging requires an explicit boolean enable switch and nonempty application identity; incomplete identity fails closed. Suppression preserves the normalized problem even if its optional logging hook is absent or throws.
 - Export only documented module entry points; internal source paths are not public API.
+- Preserve valid RFC 9457 instance URI references in structured errors. Diagnostics independently allowlist correlation URNs and must omit arbitrary URLs/paths. An absent refresh hook disables retry and preserves the original authentication problem.
 - Release npm-pack artifacts and checksums under immutable semantic-version GitHub releases. Never replace published assets. Both consumers pin exact URLs and integrity. Test the actual packed artifact and both consuming applications before final release.
 - Maintain at least 95% statements, branches, functions and lines coverage. Test rejection paths, isolation, parser failure, retry exhaustion, redaction and sink failure.
