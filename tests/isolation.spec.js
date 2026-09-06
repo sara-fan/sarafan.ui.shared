@@ -12,6 +12,24 @@ import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/cata
 import { problemResponse, response } from './fixtures/http.js'
 
 describe('independent consuming applications',()=>{
+  it('preserves transport problems when diagnostics throw and records malformed response status separately',async()=>{
+    const p=createProblemTools(),fail=()=>{throw new Error('private diagnostic failure')}
+    const fetch=vi.fn().mockResolvedValue(problemResponse(400,'validation-failed'))
+    vi.stubGlobal('fetch',fetch)
+    try {
+      for(const override of [{shouldReportFailure:fail},{routeTemplate:fail},{logger:{log:fail}},{isHandled:fail},{markHandled:fail}]) {
+        const markHandled=vi.fn()
+        const http=createHttpTools({...p,isHandled:()=>false,markHandled,logger:{log:vi.fn()},failedEvent:EVENTS.apiRequestFailed,routeTemplate:()=>'/api/v1/test',shouldReportFailure:()=>true,...override})
+        await expect(http.createApiClient({}).request('/api/v1/test')).rejects.toMatchObject({code:'validation_failed'})
+        if(!override.markHandled) expect(markHandled).toHaveBeenCalledTimes(1)
+      }
+      const logger={log:vi.fn()}
+      const http=createHttpTools({...p,...createDeduplication(),logger,failedEvent:EVENTS.apiRequestFailed,routeTemplate:()=>'/api/v1/test',shouldReportFailure:()=>true})
+      fetch.mockResolvedValue(response(502,{},'text/html'))
+      await expect(http.createApiClient({}).request('/api/v1/test')).rejects.toMatchObject({code:'ui_protocol_error'})
+      expect(logger.log.mock.calls[0][1]['http.response.status_code']).toBe(502)
+    } finally {vi.unstubAllGlobals()}
+  })
   it('preserves RFC URI references without logging them and treats an omitted refresh hook as final failure',async()=>{
     const p=createProblemTools(),logger={log:vi.fn()}
     const http=createHttpTools({...p,...createDeduplication(),logger,failedEvent:EVENTS.apiRequestFailed,routeTemplate:()=>undefined,shouldReportFailure:()=>true,invalidAccessTokenType:'https://sarafan.sw.consulting/problems/invalid-access-token'})

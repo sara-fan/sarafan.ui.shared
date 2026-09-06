@@ -2,9 +2,22 @@
 # All rights reserved.
 # This file is a part of the Sarafan application
 name: ci
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+  workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest

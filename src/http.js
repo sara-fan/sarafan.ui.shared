@@ -114,9 +114,11 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
       } = policy
       const trace = operationTrace
       let finalAttempt = 0
+      let responseStatus
 
       async function attempt(retryCount) {
         finalAttempt = retryCount
+        responseStatus = undefined
         const attemptTrace = trace.nextAttempt()
         const headers = new globalThis.Headers(options.headers)
         headers.set('Accept', responseType === 'blob' ? binaryAccept : JSON_ACCEPT)
@@ -136,6 +138,7 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
           throw createInternalProblem('networkUnavailable', { cause })
         }
 
+        responseStatus = response.status
         if (!response.ok) {
           const problem = await parseProblemResponse(response)
           if (problem.type === invalidAccessTokenType && authorize && retryCount === 0 && retry && typeof refreshSession === 'function') {
@@ -147,17 +150,14 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
         return parseSuccess(response, responseType)
       }
 
-      try {
-        return await attempt(0)
-      } catch (value) {
-        const problem = value instanceof ProblemError ? value : normalizeProblem(value)
-        if (!isHandled(problem)) {
-          if (shouldReportFailure(problem, finalAttempt)) {
+      function reportFinalFailure(problem) {
+        try {
+          if (!isHandled(problem) && shouldReportFailure(problem, finalAttempt)) {
             const attributes = {
               ...problemAttributes(problem),
               'http.request.method': requestMethod(options),
               'http.route': routeTemplate(path),
-              'http.response.status_code': problem.status,
+              'http.response.status_code': problem.status ?? responseStatus,
               'retry.count': finalAttempt
             }
             requestLogger.log(
@@ -166,8 +166,23 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
               problemTraceContext(problem, trace.lastContext())
             )
           }
-          markHandled(problem)
+          return true
+        } catch {
+          // Diagnostics are optional and cannot replace the transport failure.
+          return false
         }
+      }
+      function markFinalFailure(problem) {
+        try { markHandled(problem); return true }
+        catch { return false }
+      }
+
+      try {
+        return await attempt(0)
+      } catch (value) {
+        const problem = value instanceof ProblemError ? value : normalizeProblem(value)
+        reportFinalFailure(problem)
+        markFinalFailure(problem)
         throw problem
       }
     }
