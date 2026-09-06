@@ -1,0 +1,41 @@
+{
+  "name": "@sara-fan/ui-shared",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Shared Sarafan browser problem, transport and privacy-safe observability primitives",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sara-fan/sarafan.ui.shared.git"
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    "./problems": "./src/problems.js",
+    "./http": "./src/http.js",
+    "./observability/console-sink": "./src/observability/console-sink.js",
+    "./observability/sanitize": "./src/observability/sanitize.js",
+    "./observability/trace-context": "./src/observability/trace-context.js",
+    "./observability/problem-reporting": "./src/observability/problem-reporting.js",
+    "./observability/deduplication": "./src/observability/deduplication.js",
+    "./observability/logger": "./src/observability/logger.js",
+    "./observability/boundaries": "./src/observability/boundaries.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "build": "npm pack --dry-run"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@vitest/coverage-v8": "5.0.0",
+    "eslint": "10.9.1",
+    "jsdom": "30.0.1",
+    "vitest": "5.0.0"
+  }
+}

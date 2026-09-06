@@ -1,0 +1,37 @@
+# Copyright (C) 2026 Maxim [maxirmx] Samsonov (www.sw.consulting)
+# All rights reserved.
+# This file is a part of the Sarafan application
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.23.0'
+          cache: npm
+      - name: Verify tag matches package version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          case "$GITHUB_REF_NAME" in
+            "v$version"|"v$version-"*) ;;
+            *) echo "Tag must match the package version" >&2; exit 1 ;;
+          esac
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run coverage
+      - run: npm pack
+      - run: sha256sum sara-fan-ui-shared-*.tgz > SHA256SUMS
+      - name: Publish immutable artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" sara-fan-ui-shared-*.tgz SHA256SUMS --verify-tag --title "$GITHUB_REF_NAME" --generate-notes "${flags[@]}"

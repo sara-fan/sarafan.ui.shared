@@ -1,0 +1,29 @@
+# Copyright (C) 2026 Maxim [maxirmx] Samsonov (www.sw.consulting)
+# All rights reserved.
+# This file is a part of the Sarafan application
+name: ci
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.23.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run coverage
+      - run: npm run build
+      - run: npm pack
+      - name: Verify public exports from the actual archive
+        run: |
+          package_archive=$(realpath sara-fan-ui-shared-*.tgz)
+          scratch=$(mktemp -d)
+          cd "$scratch"
+          npm init -y
+          npm install "$package_archive"
+          node --input-type=module -e "import { ProblemError } from '@sara-fan/ui-shared/problems'; import { createHttpTools } from '@sara-fan/ui-shared/http'; if (!ProblemError || !createHttpTools) process.exit(1)"
