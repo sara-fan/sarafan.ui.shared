@@ -3,6 +3,7 @@
 // This file is a part of the Sarafan application
 
 import { describe, expect, it, vi } from 'vitest'
+import packageInfo from '../package.json'
 
 import { installErrorBoundaries, reportBoundaryFailure } from './support/observability/boundaries.js'
 import { EVENTS, SEVERITY, isCatalogueEvent } from './support/observability/catalogue.js'
@@ -127,7 +128,7 @@ describe('UI observability', () => {
       spanId: SPAN_ID,
       resource: {
         'service.name': 'sarafan.ui',
-        'service.version': '0.0.1',
+        'service.version': packageInfo.version,
         'deployment.environment.name': 'test'
       },
       instrumentationScope: 'sarafan.ui.observability'

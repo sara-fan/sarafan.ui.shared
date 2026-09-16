@@ -60,7 +60,7 @@ For other comment-capable formats, use the same three lines with that format's n
 
 ## Package boundary and releases
 
-- This plain ESM package has no Vue dependency, app singleton, Vite environment access, or consumer package.json import. Inject app identity, fixed event catalogue, logging controls, route templates and authentication callbacks. Keep customer/staff session stores and business UI in consumers.
+- This plain ESM package has no Vue runtime dependency, app singleton, Vite environment access, or consumer package.json import. Inject app identity, fixed event catalogue, logging controls, route templates and authentication callbacks. Keep customer/staff session stores and business UI in consumers.
 - Preserve public problem identifiers, privacy rules, log event contracts and single-retry semantics when extracting or changing code. Give each constructed runtime its own mutable diagnostics state. Generate problem instances with Web Crypto randomness, including the fallback when randomUUID is unavailable; never use a module-level counter shared by consumers.
 - Logger construction and suppression must tolerate missing diagnostic configuration. Logging requires an explicit boolean enable switch and nonempty application identity; incomplete identity fails closed. Suppression preserves the normalized problem even if its optional logging hook is absent or throws.
 - Export only documented module entry points; internal source paths are not public API.
@@ -73,3 +73,10 @@ For other comment-capable formats, use the same three lines with that format's n
 ## GitHub Actions conventions
 
 - Pin reusable actions to published version tags and give every workflow step a descriptive name.
+
+## Validation focus
+
+- Own validation-field resolution, DOM focus ordering and action lifecycle safeguards in `@sara-fan/ui-shared/validation-focus`. Inject `nextTick`, `watch` and `onScopeDispose` with `createValidationFocus`; Vue is a development-only dependency for integration tests. Keep application field aliases and canonical problem-type mappings in consumers.
+- Focus only after explicit failed user actions, once errors render and controls are enabled. Scope to the original form/dialog, select the first invalid eligible control in displayed order, and support groups and visible upload activators. Preserve values, skip hidden/disabled/read-only/detached controls, and never infer field names from localized messages.
+- Repeated failures must refocus; typing, blur validation and background refresh must not. Discard obsolete results after context changes, closure, root replacement, newer actions or disposal. Consumers supply reactive identity/navigation context and dialog/activity guards.
+- Keep the behavior tests here, including real Vue lifecycle integration. Consumer suites cover their field associations and user actions against the actual packed artifact.
