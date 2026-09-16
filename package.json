@@ -1,6 +1,6 @@
 {
   "name": "@sara-fan/ui-shared",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "type": "module",
   "description": "Shared Sarafan browser problem, transport and privacy-safe observability primitives",
   "repository": {
