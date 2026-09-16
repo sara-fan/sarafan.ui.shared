@@ -46,4 +46,4 @@ jobs:
           cd "$scratch"
           npm init -y
           npm install "$package_archive"
-          node --input-type=module -e "import { ProblemError } from '@sara-fan/ui-shared/problems'; import { createHttpTools } from '@sara-fan/ui-shared/http'; if (!ProblemError || !createHttpTools) process.exit(1)"
+          node --input-type=module -e "import { ProblemError } from '@sara-fan/ui-shared/problems'; import { createHttpTools } from '@sara-fan/ui-shared/http'; import { createValidationFocus, validationFields, focusInvalidField } from '@sara-fan/ui-shared/validation-focus'; if (!ProblemError || !createHttpTools || !createValidationFocus || !validationFields || !focusInvalidField) process.exit(1)"

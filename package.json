@@ -1,6 +1,6 @@
 {
   "name": "@sara-fan/ui-shared",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "description": "Shared Sarafan browser problem, transport and privacy-safe observability primitives",
   "repository": {
@@ -23,7 +23,8 @@
     "./observability/problem-reporting": "./src/observability/problem-reporting.js",
     "./observability/deduplication": "./src/observability/deduplication.js",
     "./observability/logger": "./src/observability/logger.js",
-    "./observability/boundaries": "./src/observability/boundaries.js"
+    "./observability/boundaries": "./src/observability/boundaries.js",
+    "./validation-focus": "./src/validation-focus.js"
   },
   "scripts": {
     "lint": "eslint .",
@@ -34,8 +35,10 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@vitest/coverage-v8": "5.0.0",
+    "@vue/test-utils": "2.4.11",
     "eslint": "10.9.1",
     "jsdom": "30.0.1",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "vue": "3.5.41"
   }
 }
