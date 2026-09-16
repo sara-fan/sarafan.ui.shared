@@ -27,7 +27,7 @@ function harness() {
   const wrapper = mount({
     setup() {
       const root = ref(null)
-      const after = useValidationFocus(root, { context:() => context.value, active:() => active.value })
+      const after = useValidationFocus(root, { context:() => context.value, active:() => active.value, ready:() => !busy.value })
       run = action => after(action, () => fields.value)
       return () => h('form', { ref:root, key:key.value }, [
         h('input', { name:'first', disabled:busy.value }), h('input', { name:'second' }), h('button', { type:'button' }, 'Save')
@@ -145,13 +145,14 @@ describe('validation focus', () => {
     expect(globalThis.document.activeElement).toBe(second)
   })
 
-  it.each(['context', 'closed', 'unmounted', 'replaced', 'newer'])('ignores obsolete actions: %s', async mode => {
+  it.each(['context', 'closed', 'reopened', 'unmounted', 'replaced', 'newer'])('ignores obsolete actions: %s', async mode => {
     const view = harness()
     let finish
     const request = view.run(() => new Promise(resolve => { finish = resolve }))
     view.fields.value = ['first']
     if (mode === 'context') { view.context.value = 'other'; view.context.value = 'first' }
     if (mode === 'closed') view.active.value = false
+    if (mode === 'reopened') { view.active.value = false; view.active.value = true }
     if (mode === 'unmounted') { view.wrapper.unmount(); wrappers.pop() }
     if (mode === 'replaced') view.key.value++
     if (mode === 'newer') await view.run(() => { view.fields.value = [] })
@@ -162,6 +163,31 @@ describe('validation focus', () => {
     finish()
     await request
     expect(globalThis.document.activeElement).toBe(sentinel)
+  })
+
+  it('does not focus while unready or later steal focus when readiness changes', async () => {
+    const view = harness()
+    const button = view.wrapper.get('button').element
+    button.focus()
+    await view.run(() => { view.busy.value = true; view.fields.value = ['second'] })
+    expect(globalThis.document.activeElement).toBe(button)
+    view.busy.value = false
+    await nextTick()
+    expect(globalThis.document.activeElement).toBe(button)
+  })
+
+  it('allows new actions after reopening without reviving earlier actions', async () => {
+    const view = harness()
+    let finish
+    const obsolete = view.run(() => new Promise(resolve => { finish = resolve }))
+    view.active.value = false
+    view.active.value = true
+    await view.run(() => { view.fields.value = ['second'] })
+    expect(globalThis.document.activeElement).toBe(view.wrapper.get('[name="second"]').element)
+    view.fields.value = ['first']
+    finish()
+    await obsolete
+    expect(globalThis.document.activeElement).toBe(view.wrapper.get('[name="second"]').element)
   })
 
   it('preserves rejected action semantics while focusing its validation error', async () => {

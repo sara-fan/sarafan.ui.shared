@@ -40,10 +40,13 @@ export function focusInvalidField(root, fields) {
 // Inject the consuming framework lifecycle; this package has no Vue runtime dependency.
 export function createValidationFocus({ nextTick, onScopeDispose, watch }) {
   // Call only around a user action, never from a validation watcher or background load.
-  return function useValidationFocus(root, { context = () => null, active = () => true } = {}) {
+  return function useValidationFocus(root, { context = () => null, active = () => true, ready = () => true } = {}) {
     let generation = 0
     let disposed = false
     watch(context, () => { generation++ }, { flush:'sync' })
+    // Closing invalidates immediately, even if reopened before the action settles.
+    // Temporary busy/disabled state belongs in ready, not active.
+    watch(active, isActive => { if (!isActive) generation++ }, { flush:'sync' })
     onScopeDispose(() => { disposed = true; generation++ })
     return async function focusAfter(action, fields) {
       const ownGeneration = ++generation
@@ -52,7 +55,7 @@ export function createValidationFocus({ nextTick, onScopeDispose, watch }) {
         return await action()
       } finally {
         await nextTick()
-        if (!disposed && generation === ownGeneration && active() && origin === root.value) {
+        if (!disposed && generation === ownGeneration && active() && ready() && origin === root.value) {
           focusInvalidField(origin, fields())
         }
       }
