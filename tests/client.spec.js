@@ -16,6 +16,14 @@ import { TEST_TRACE_ID, problem, problemResponse, response } from './fixtures/ht
 describe('RFC 9457 API client', () => {
   afterEach(() => vi.unstubAllGlobals())
 
+  it.each(['2', '0', '-1', '99999', 'tomorrow'])('accepts only bounded Retry-After seconds: %s', async header => {
+    const incoming = problemResponse(429, 'rate-limited')
+    incoming.headers.set('Retry-After', header)
+    const parsed = await parseProblemResponse(incoming)
+    expect(parsed.retryAfterSeconds).toBe(header === '2' ? 2 : undefined)
+    expect(JSON.stringify(parsed)).not.toContain('retryAfterSeconds')
+  })
+
   it('preserves a complete domain and validation problem', async () => {
     const errors = { phone: ['Введите номер телефона'] }
     const result = await parseProblemResponse(problemResponse(400, 'validation-failed', {

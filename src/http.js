@@ -88,7 +88,13 @@ export function createHttpTools({ createInternalProblem, normalizeProblem, isHan
 
     const invalidReason = invalidProblemReason(document, response.status)
     if (invalidReason) throw protocolProblem(new TypeError(invalidReason))
-    return new ProblemError(document)
+    const problem = new ProblemError(document)
+    const retryAfter = response.headers?.get?.('Retry-After')
+    if (response.status === 429 && /^(?:[1-9]\d{0,3})$/u.test(retryAfter ?? '')) {
+      const seconds = Number(retryAfter)
+      if (seconds <= 3600) Object.defineProperty(problem, 'retryAfterSeconds', { value:seconds })
+    }
+    return problem
   }
 
   async function parseSuccess(response, responseType) {

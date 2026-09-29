@@ -6,6 +6,10 @@ This file is a part of the Sarafan application
 
 # Shared browser infrastructure instructions
 
+## Anonymous API throttling
+
+- Parse bounded numeric `Retry-After` from validated 429 Core responses into non-serializable `ProblemError.retryAfterSeconds`; keep the RFC 9457 body contract unchanged.
+
 ## Specification and repository guidance
 
 - Follow the current specification identified in the [specification README](https://github.com/sara-fan/sarafan.spec#source-of-truth). If an implementation issue conflicts with it, flag the discrepancy before implementing the affected behavior.
