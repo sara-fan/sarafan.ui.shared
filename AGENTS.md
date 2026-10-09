@@ -62,6 +62,10 @@ For other comment-capable formats, use the same three lines with that format's n
 - Production logging defaults to Warning and Development may use Debug, both beneath the runtime master switch. Thresholds and switches must never bypass sanitization or change the allowed fields.
 - Extend tests for record shape/readability, catalogue enforcement, redaction, runtime control, W3C generation/retry propagation, RFC 9457 correlation, deduplication, rate limiting, global boundaries, and sink failure. Preserve at least 95% coverage for new and modified code.
 
+## Paid indicators
+
+- Share the accessible paid check through `createPaidIndicator({ h })`; consumers inject Vue rendering and supply domain labels. The component owns its green SVG presentation; consumers own payment state, amounts and authorization.
+
 ## Package boundary and releases
 
 - This plain ESM package has no Vue runtime dependency, app singleton, Vite environment access, or consumer package.json import. Inject app identity, fixed event catalogue, logging controls, route templates and authentication callbacks. Keep customer/staff session stores and business UI in consumers.
