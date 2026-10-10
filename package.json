@@ -1,6 +1,6 @@
 {
   "name": "@sara-fan/ui-shared",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Shared Sarafan browser problem, transport and privacy-safe observability primitives",
   "repository": {
@@ -25,7 +25,8 @@
     "./observability/logger": "./src/observability/logger.js",
     "./observability/boundaries": "./src/observability/boundaries.js",
     "./validation-focus": "./src/validation-focus.js",
-    "./paid-indicator": "./src/paid-indicator.js"
+    "./paid-indicator": "./src/paid-indicator.js",
+    "./image-preview": "./src/image-preview.js"
   },
   "scripts": {
     "lint": "eslint .",
