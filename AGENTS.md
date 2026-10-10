@@ -66,6 +66,10 @@ For other comment-capable formats, use the same three lines with that format's n
 
 - Share the accessible paid check through `createPaidIndicator({ h })`; consumers inject Vue rendering and supply domain labels. The component owns its green SVG presentation; consumers own payment state, amounts and authorization.
 
+## Authenticated image previews
+
+- Use `createImagePreview` for Blob URL ownership and stale-read/decode guards. Inject transport, safe problem creation and rendering callbacks; never retain an image across identity/input changes or disposal. Keep endpoint validation and framework lifecycle adapters in consumers.
+
 ## Package boundary and releases
 
 - This plain ESM package has no Vue runtime dependency, app singleton, Vite environment access, or consumer package.json import. Inject app identity, fixed event catalogue, logging controls, route templates and authentication callbacks. Keep customer/staff session stores and business UI in consumers.
