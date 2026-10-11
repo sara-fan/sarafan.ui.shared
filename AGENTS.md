@@ -64,7 +64,7 @@ For other comment-capable formats, use the same three lines with that format's n
 
 ## Paid indicators
 
-- Share the accessible paid check through `createPaidIndicator({ h })`; consumers inject Vue rendering and supply domain labels. The component owns its green SVG presentation; consumers own payment state, amounts and authorization.
+- Share the accessible paid check through `createPaidIndicator({ h, Tooltip })`. Both apps inject Vue h and Vuetify VTooltip: the tooltip always says «Оплачено», while domain labels retain payment-specific accessible names. Use 1em SVG dimensions so marks scale with surrounding amounts; forward tooltip activator attributes/events and allow keyboard focus. Omitting Tooltip retains the native-title API for older consumers. The component owns presentation; consumers own payment state, amounts and authorization.
 
 ## Authenticated image previews
 
